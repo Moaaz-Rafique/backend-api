@@ -1,0 +1,73 @@
+{% extends "layout.html" %}
+{% block body %}
+<div class="container">
+    <div class="row pt-5">
+        <div class="col-lg-8">
+            <h1 class="mb-3">Inbox</h1>
+
+            {% for received_message in inbox_messages %}
+            <div class="card border border-muted bg-light rounded mb-3">
+                <div class="card-body">
+                    <h3 class="card-title">{{ received_message.title }}</h3>
+                    <h4 class="card-title text-small text-muted"><small>From: {{ received_message.from_name }}</small></h4>
+                    <p class="card-text">{{ received_message.body }}</p>
+                </div>
+                <div class="card-footer bg-light d-flex justify-content-between">
+                    <div class="my-auto">
+                        <p class="my-auto text-muted">{{ received_message.date_string }}</p>
+                    </div>
+                    <div class="my-auto">
+                        <form class="delete-message-form">
+                            <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" id="message_id" name="message_id" value="{{ received_message.id }}">
+                            <button class="btn btn-danger delete-message-button">Delete message</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            {% if inbox_messages_count == 0 %}
+            <p>You have no messages here</p>
+            {% endif %}
+
+
+        </div>
+
+        <div class="col-lg-4">
+            <h1 class="mb-3">Sent messages</h1>
+
+            {% for sent_message in sent_messages %}
+            <div class="card border border-muted bg-light rounded mb-3">
+                <div class="card-body">
+                    <h3 class="card-title">{{ sent_message.title}}</h3>
+                    <h4 class="card-title text-small text-muted"><small>To: {{ sent_message.to_name }}</small></h4>
+                    <p class="card-text">{{ sent_message.body }}</p>
+                </div>
+                <div class="card-footer bg-light d-flex justify-content-between">
+                    <div class="my-auto">
+                        <p class="my-auto text-muted">{{ sent_message.date_string }}</p>
+                    </div>
+                    <div class="my-auto">
+                        <form class="hide-sent-message-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" id="message_id" name="message_id" value="{{ sent_message.id }}">
+                            <button class="btn btn-warning hide-sent-message-button">Hide message</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            {% if sent_messages_count == 0 %}
+            <p>You have no messages here</p>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+
+</div>
+{% endblock %}

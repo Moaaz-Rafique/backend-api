@@ -1,0 +1,9 @@
+Flask
+flask_bcrypt
+flask_login
+flask_pymongo
+flask_talisman
+flask_wtf
+dnspython
+configparser
+itsdangerous
