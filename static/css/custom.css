@@ -17,3 +17,7 @@ select.form-control {
     -o-appearance: none;
     appearance: none;
 }
+
+.catalogue-form label {
+    justify-content: start;
+}

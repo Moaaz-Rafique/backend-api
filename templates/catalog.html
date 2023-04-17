@@ -5,51 +5,76 @@
   </div>
   <div class="row">
     <div class="container mt-5">
-    <form class="form-inline catalogue-form">
-                       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" </input>
-      {% comment %} <ul class="list-group mt-4"> {% endcomment %}
-      {% for d in data %}
-
-      <li 
-        class="list-group-item list-group-item-primary"
-        data-toggle="collapse" 
-        data-target="#{{d.title}}" 
-        aria-expanded="true" 
-        aria-controls="{{d.title}}">
-           <input type="checkbox" class="mr-2"/> {{d.code}}, {{d.id}}
-        </li>
-        <div 
-            class="collapse"  
-            id="{{d.title}}">
-            <ul class="list-group">
-                {% for c in d.catalogs %}
-                <li 
-                    class="list-group-item list-group-item-secondary"
-                    data-toggle="collapse" 
-                    data-target="#{{c.title}}" 
-                    aria-expanded="true" 
-                    aria-controls="{{c.title}}">
-                    <input type="checkbox" class="mr-2"> {{c.code}}, {{c.id}}
+      <form class="form-inline catalogue-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="collapse show" id="collapseExample1">
+          <ul class="list-group mt-4">
+            {% for a in data %}
+            <li
+              class="list-group-item list-group-item-primary"
+              data-toggle="collapse"
+              data-target="#{{a.title}}"
+              aria-expanded="true"
+              aria-controls="{{a.title}}"
+            >
+              {{a.code}}, {{a.id}}
+            </li>
+            <div class="collapse" id="{{a.title}}">
+              <ul class="list-group">
+                {% for d in a.catalogs %}
+                <li
+                  class="list-group-item list-group-item"
+                  data-toggle="collapse"
+                  data-target="#{{d.title}}"
+                  aria-expanded="true"
+                  aria-controls="{{d.title}}"
+                >
+                  <div class="custom-control custom-checkbox">
+                    <input
+                      type="checkbox"
+                      class="custom-control-input"
+                      id="checkbox{{d.id}}"
+                      name="catalogue[]"
+                      value="{{d.id}}"
+                    />
+                    <label class="custom-control-label text-left" for="checkbox{{d.id}}"
+                      >{{d.code}}</label
+                    >
+                  </div>
                 </li>
-                    <div 
-                        class="collapse"  
-                        id="{{c.title}}">
-                    <ul class="list-group">
-                    {% for a in c.catalogs %}
-                       <li class="list-group-item"><input type="checkbox" class="mr-2"> {{a.code}}, {{a.id}}</li>
-                    {% endfor %}                
-            </ul>
-            </div>
+                <div class="collapse" id="{{d.title}}">
+                  <ul class="list-group">
+                    {% for c in d.catalogs %}
+                    <li class="list-group-item list-group-item-secondary">
+                      <div class="custom-control custom-checkbox">
+                        <input
+                          type="checkbox"
+                          class="custom-control-input"
+                          id="checkbox{{c.id}}"
+                          name="catalogue[]"
+                          value="{{c.id}}"
+                        />
+                        <label
+                          class="custom-control-label text-left"
+                          for="checkbox{{c.id}}"
+                          >{{c.code}}</label
+                        >
+                      </div>
+                    </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+
                 {% endfor %}
-            </ul>
+              </ul>
+            </div>
+            {% endfor %}
+          </ul>
         </div>
-      {% endfor %}
-      </ul>
       </form>
     </div>
   </div>
-  <button id="feed" >calculate Feed</button>
-
-  {% endblock %}  
-  
+  <button id="feed" class="btn btn-primary">save preferences</button>
 </div>
+
+{% endblock %}
