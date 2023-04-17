@@ -155,3 +155,17 @@ $(document).ready(function() {
     });
 
 });
+
+
+  // Calculate the feed
+  $("button#feed").click(function () {
+    console.log("clicked calculate")
+    $.post("/calculate_feed", $("form.catalogue-form").serialize())
+      .done(function (response) {
+        console.log(response);
+        // location.reload(true);
+      })
+      .fail(function (response) {
+        console.log(response);
+      });
+  });

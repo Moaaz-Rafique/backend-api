@@ -20,6 +20,7 @@ import os
 from user import User, Anonymous
 from message import Message
 from note import Note
+from category import Category
 from email_utility import send_email, send_registration_email, send_message_email
 from verification import confirm_token
 
@@ -123,10 +124,8 @@ def register():
         # Check if email address already exists
         existing_user = users.find_one(
             {'email': email}, {'_id': 0})
-
-        print("************error************")
-        if existing_user is None:
-            print("error")
+        
+        if existing_user is None:            
             logout_user()
             # Hash password ABCabc123!
             hashpass = bc.generate_password_hash(password).decode('utf-8')
@@ -139,10 +138,12 @@ def register():
             # Insert user record to database
             if users.insert_one(user_data_to_save):
                 login_user(new_user)
-                send_registration_email(new_user)
+                # print("Fuplo Error")
+                # send_registration_email(new_user)                
                 return redirect(url_for('profile'))
             else:
                 # Handle database error
+                print("Database Error")
                 return redirect(url_for('register', error=2))
 
         # Handle duplicate email
@@ -232,75 +233,33 @@ def logout():
 
 
 # POST REQUEST ROUTES
-
-# Add note
-@app.route('/add_note', methods=['POST'])
+# Add category
+@app.route('/add_category', methods=['POST'])
 @login_required
-def add_note():
-    title = request.form.get("title")
-    body = request.form.get("body")
-    user_id = current_user.id
-    user_name = current_user.display_name()
-    note = Note(title, body, user_id, user_name)
-    print(note)
-    if mongo.db.notes.insert_one(note.dict()):
-        return "Success! Note added: " + title
+def add_category():
+    title = request.form.get("title")    
+    id = request.form.get("id")    
+    if title and id:
+        print("-----------------Done--------------")
+        category = Category(title, id)
+        if mongo.db.category.insert_one(category.dict()):
+            return "Success! Note added: " + title
     else:
+        print("-----------------Error--------------")
         return "Error! Could not add note"
 
 
 # Delete note
-@app.route('/delete_note', methods=['POST'])
+@app.route('/delete_category', methods=['POST'])
 @login_required
 def delete_note():
-    note_id = request.form.get("note_id")
-    if mongo.db.notes.update_one({"id": note_id}, {"$set": {"deleted": True}}):
+    category_id = request.form.get("category_id")
+    if mongo.db.category.update_one({"id": category_id}, {"$set": {"deleted": True}}):
         return "Success! Note deleted"
     else:
         return "Error! Could not delete note"
 
 
-# Send message
-@app.route('/send_message', methods=['POST'])
-@login_required
-def send_message():
-    title = request.form.get("title")
-    body = request.form.get("body")
-    from_id = current_user.id
-    from_name = current_user.display_name()
-    to_id = request.form.get("user")
-    to_user_dict = mongo.db.users.find_one({"id": to_id})
-    to_user = User.make_from_dict(to_user_dict)
-    to_name = to_user.display_name()
-    message = Message(title, body, from_id, from_name, to_id, to_name)
-    if mongo.db.messages.insert_one(message.dict()):
-        send_message_email(from_user=current_user,
-                           to_user=to_user, message=message)
-        return "Success! Message sent to " + to_name + ": " + title
-    else:
-        return "Error! Could not send message"
-
-
-# Delete message
-@app.route('/delete_message', methods=['POST'])
-@login_required
-def delete_message():
-    message_id = request.form.get("message_id")
-    if mongo.db.messages.update_one({"id": message_id}, {"$set": {"deleted": True}}):
-        return "Success! Message deleted"
-    else:
-        return "Error! Could not delete message"
-
-
-# Hide sent message
-@app.route('/hide_sent_message', methods=['POST'])
-@login_required
-def hide_sent_message():
-    message_id = request.form.get("message_id")
-    if mongo.db.messages.update_one({"id": message_id}, {"$set": {"hidden_for_sender": True}}):
-        return "Success! Message hidden from sender"
-    else:
-        return "Error! Could not hide message"
 
 
 # Change Name
@@ -316,7 +275,17 @@ def change_name():
     else:
         return "Error! Could not update user name"
 
-
+# Calculate
+@app.route('/calculate_feed', methods=['POST', "GET"])
+# @login_required
+def calculate_feed():
+    print("some error")
+    if request.form:
+        print(request.form)
+    # if mongo.db.users.update_one({"email": current_user.email}, {"$set": {"title": title, "first_name": first_name, "last_name": last_name}}):
+        return "User name updated successfully"
+    else:
+        return "Error! Could not update user name"
 # Delete Account
 @app.route('/delete_account', methods=['POST'])
 @login_required
@@ -344,7 +313,38 @@ def delete_account():
     return {"user_deleted": user_deleted, "notes_deleted": notes_deleted, "messages_deleted": messages_deleted}
 
 
+
+@app.route('/catalog')
+def catalog():
+    # Read data from JSON file
+    with open('catalog.json', 'r') as f:
+        data = json.load(f)
+    
+    # Render data to template
+    return render_template('catalog.html', data=data)
+
+
+
+
+@app.route('/feed')
+def feed():
+    # Read data from JSON file
+    # with open('catalog.json', 'r') as f:
+    #     data = json.load(f)
+    
+
+
+    all_users = mongo.db.users.find(
+            {"id": current_user.id})
+    
+    user_feed = all_users.selected_catalog
+
+    # Render data to template
+    return render_template('feed.html', data=user_feed)
+
 # LOGIN MANAGER REQUIREMENTS
+
+
 
 # Load user from user ID
 @login_manager.user_loader
