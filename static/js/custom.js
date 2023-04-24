@@ -158,7 +158,20 @@ $(document).ready(function() {
 
 
   // Calculate the feed
+  
+  // Calculate the feed
   $("button#feed").click(function () {
+    console.log("clicked calculate")
+    $.post("/calculate_feed", $("form.catalogue-form").serialize())
+      .done(function (response) {
+        console.log(response);
+        // location.reload(true);
+      })
+      .fail(function (response) {
+        console.log(response);
+      });
+  });
+  $("button#sizeBrand").click(function () {
     console.log("clicked calculate")
     $.post("/set_brand", $("form.brand-select-form").serialize())
       .done(function (response) {
@@ -169,7 +182,6 @@ $(document).ready(function() {
         console.log(response);
       });
   });
-
   $("button#sizeFeed").click(function () {
     console.log("clicked calculate")
     $.post("/set_size", $("form.size-select-form").serialize())

@@ -13,6 +13,7 @@ def getVintedProducts(
     ],
 ):
     url = "https://www.vinted.com/catalog?order=newest_first"
+    print(pref)
     if pref:
         for i in pref['catalog']:
             url += "&catalog[]=" + i

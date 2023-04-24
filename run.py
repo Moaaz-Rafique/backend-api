@@ -268,17 +268,21 @@ def change_name():
 
 # Calculate
 @app.route("/calculate_feed", methods=["POST"])
-# @login_required
+@login_required
 def calculate_feed():
     print("some error")
     if request.form:
         print(request.form)
         try:
             selected_catalog = request.form.getlist("catalog[]")
-            if mongo.db.users.update_one(
-                {"email": current_user.email},
-                {"$set": {"preferences": {"catalog":selected_catalog}}},
-            ):
+            user_doc = mongo.db.users.find_one({"email": current_user.email})
+
+            # Update the preference object with the new size value
+            user_doc['preference']['catalog'] = selected_catalog
+
+            # Save the updated document back to MongoDB
+            if mongo.db.users.replace_one({'_id': user_doc.id}, user_doc):
+                # print(selected_catalog, "this catalog")
                 # print(selected_catalog, "this catalog")
                 return "User feed settings updated successfully"
         except Exception as e:
@@ -289,17 +293,20 @@ def calculate_feed():
         return "Error! Could not update user feed settings"
 
 @app.route("/set_brand", methods=["POST"])
-# @login_required
+@login_required
 def set_brand():
     print("some error")
     if request.form:
         print(request.form)
         try:
             selected_catalog = request.form.getlist("brand_ids[]")
-            if mongo.db.users.update_one(
-                {"email": current_user.email},
-                {"$set": {"preferences": {"brand_ids":selected_catalog}}},
-            ):
+            user_doc = mongo.db.users.find_one({"email": current_user.email})
+
+            # Update the preference object with the new size value
+            user_doc['preference']['brands_ids'] = selected_catalog
+
+            # Save the updated document back to MongoDB
+            if mongo.db.users.replace_one({'_id': user_doc.id}, user_doc):
                 # print(selected_catalog, "this catalog")
                 return "User feed settings updated successfully"
         except Exception as e:
@@ -310,18 +317,20 @@ def set_brand():
         return "Error! Could not update user feed settings"
 
 @app.route("/set_size", methods=["POST"])
-# @login_required
-def set_brand():
+@login_required
+def set_size():
     print("some error")
     if request.form:
         print(request.form)
         try:
             selected_catalog = request.form.getlist("size_ids[]")
-            if mongo.db.users.update_one(
-                {"email": current_user.email},
-                {"$set": {"preferences": {"size_ids":selected_catalog}}},                
-                
-            ):
+            user_doc = mongo.db.users.find_one({"email": current_user.email})
+
+            # Update the preference object with the new size value
+            user_doc['preference']['size_ids'] = selected_catalog
+
+            # Save the updated document back to MongoDB
+            if mongo.db.users.replace_one({'_id': user_doc.id}, user_doc):
                 # print(selected_catalog, "this catalog")
                 return "User feed settings updated successfully"
         except Exception as e:
