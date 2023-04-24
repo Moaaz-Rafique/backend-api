@@ -1,0 +1,45 @@
+{% extends "layout.html" %} {% block body %}
+<div class="container">
+  <div class="row">
+    <h1 class="text-primary">Brand</h1>
+  </div>
+  <div class="row">
+    <div class="container mt-5">
+      <form class="form-inline catalogue-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="collapse show" id="collapseExample1">
+          <ul class="list-group">
+            {% for d in data %}
+            <li
+              class="list-group-item list-group-item"
+              data-toggle="collapse"
+              data-target="#{{d.title}}"
+              aria-expanded="true"
+              aria-controls="{{d.title}}"
+            >
+              <div class="custom-control custom-checkbox">
+                <input
+                  type="checkbox"
+                  class="custom-control-input"
+                  id="checkbox{{d.id}}"
+                  name="brand_ids[]"
+                  value="{{d.id}}"
+                />
+                <label
+                  class="custom-control-label text-left"
+                  for="checkbox{{d.id}}"
+                  >{{d.title}}</label
+                >
+              </div>
+            </li>
+
+            {% endfor %}
+          </ul>
+        </div>
+      </form>
+    </div>
+  </div>
+  <button id="feed" class="btn btn-primary">save brand</button>
+</div>
+
+{% endblock %}

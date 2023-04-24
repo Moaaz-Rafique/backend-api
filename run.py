@@ -1,8 +1,23 @@
 # MODULE IMPORTS
 
 # Flask modules
-from flask import Flask, render_template, request, url_for, request, redirect, abort
-from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from flask import (
+    Flask,
+    render_template,
+    request,
+    url_for,
+    request,
+    redirect,
+    abort,
+    jsonify,
+)
+from flask_login import (
+    LoginManager,
+    login_user,
+    logout_user,
+    login_required,
+    current_user,
+)
 from flask_talisman import Talisman
 from flask_pymongo import PyMongo
 from flask_bcrypt import Bcrypt
@@ -18,8 +33,10 @@ import os
 
 # Local imports
 from user import User, Anonymous
-from message import Message
 from note import Note
+
+from vinted_helper import getVintedProducts
+
 from category import Category
 from email_utility import send_email, send_registration_email, send_message_email
 from verification import confirm_token
@@ -30,12 +47,12 @@ app = Flask(__name__)
 
 # Configuration
 config = configparser.ConfigParser()
-config.read('configuration.ini')
-default = config['DEFAULT']
-app.secret_key = default['SECRET_KEY']
-app.config['MONGO_DBNAME'] = default['DATABASE_NAME']
-app.config['MONGO_URI'] = default['MONGO_URI']
-app.config['PREFERRED_URL_SCHEME'] = "https"
+config.read("configuration.ini")
+default = config["DEFAULT"]
+app.secret_key = default["SECRET_KEY"]
+app.config["MONGO_DBNAME"] = default["DATABASE_NAME"]
+app.config["MONGO_URI"] = default["MONGO_URI"]
+app.config["PREFERRED_URL_SCHEME"] = "https"
 
 # Create Pymongo
 mongo = PyMongo(app)
@@ -45,12 +62,12 @@ bc = Bcrypt(app)
 
 # Create Talisman
 csp = {
-    'default-src': [
-        '\'self\'',
-        'https://stackpath.bootstrapcdn.com',
-        'https://pro.fontawesome.com',
-        'https://code.jquery.com',
-        'https://cdnjs.cloudflare.com'
+    "default-src": [
+        "'self'",
+        "https://stackpath.bootstrapcdn.com",
+        "https://pro.fontawesome.com",
+        "https://code.jquery.com",
+        "https://cdnjs.cloudflare.com",
     ]
 }
 talisman = Talisman(app, content_security_policy=csp)
@@ -68,108 +85,110 @@ login_manager.login_view = "login"
 
 # ROUTES
 
+
 # Index
-@app.route('/')
+@app.route("/")
 def index():
-    return render_template('index.html')
+    return render_template("index.html")
 
 
 # Login
-@app.route('/login', methods=['GET', 'POST'])
+@app.route("/login", methods=["GET", "POST"])
 def login():
-    if request.method == 'GET':
+    if request.method == "GET":
         if current_user.is_authenticated:
             # Redirect to index if already authenticated
             print("error")
-            return redirect(url_for('/'))
+            return redirect(url_for("/"))
         # Render login page
-        return render_template('login.html', error=request.args.get("error"))
+        return render_template("login.html", error=request.args.get("error"))
     # Retrieve user from database
     users = mongo.db.users
-    user_data = users.find_one({'email': request.form['email']}, {'_id': 0})
+    user_data = users.find_one({"email": request.form["email"]}, {"_id": 0})
     if user_data:
         # Check password hash
-        if bc.check_password_hash(user_data['password'], request.form['pass']):
+        if bc.check_password_hash(user_data["password"], request.form["pass"]):
             # Create user object to login (note password hash not stored in session)
             user = User.make_from_dict(user_data)
             login_user(user)
 
             # Check for next argument (direct user to protected page they wanted)
-            next = request.args.get('next')
+            next = request.args.get("next")
             if not is_safe_url(next):
                 return abort(400)
 
             # Go to profile page after login
-            return redirect(next or url_for('profile'))
+            return redirect(next or url_for("profile"))
 
     # Redirect to login page on error
-    return redirect(url_for('login', error=1))
+    return redirect(url_for("login", error=1))
 
 
 # Register
-@app.route('/register', methods=['POST', 'GET'])
+@app.route("/register", methods=["POST", "GET"])
 def register():
-    if request.method == 'POST':
+    if request.method == "POST":
         # Trim input data
-        email = request.form['email'].strip()
-        title = request.form['title'].strip()
-        first_name = request.form['first_name'].strip()
-        last_name = request.form['last_name'].strip()
-        password = request.form['pass'].strip()
+        email = request.form["email"].strip()
+        title = request.form["title"].strip()
+        first_name = request.form["first_name"].strip()
+        last_name = request.form["last_name"].strip()
+        password = request.form["pass"].strip()
         print(email, title, first_name, last_name, password)
-        
+
         print(mongo.db)
-        users = mongo.db.users 
+        users = mongo.db.users
 
         # Check if email address already exists
-        existing_user = users.find_one(
-            {'email': email}, {'_id': 0})
-        
-        if existing_user is None:            
+        existing_user = users.find_one({"email": email}, {"_id": 0})
+
+        if existing_user is None:
             logout_user()
             # Hash password ABCabc123!
-            hashpass = bc.generate_password_hash(password).decode('utf-8')
+            hashpass = bc.generate_password_hash(password).decode("utf-8")
             # Create user object (note password hash not stored in session)
             new_user = User(title, first_name, last_name, email)
             # Create dictionary data to save to database
             user_data_to_save = new_user.dict()
-            user_data_to_save['password'] = hashpass
+            user_data_to_save["password"] = hashpass
 
             # Insert user record to database
             if users.insert_one(user_data_to_save):
                 login_user(new_user)
                 # print("Fuplo Error")
-                # send_registration_email(new_user)                
-                return redirect(url_for('profile'))
+                # send_registration_email(new_user)
+                return redirect(url_for("profile"))
             else:
                 # Handle database error
                 print("Database Error")
-                return redirect(url_for('register', error=2))
+                return redirect(url_for("register", error=2))
 
         # Handle duplicate email
-        return redirect(url_for('register', error=1))
+        return redirect(url_for("register", error=1))
 
     # Return template for registration page if GET request
-    return render_template('register.html', error=request.args.get("error"))
+    return render_template("register.html", error=request.args.get("error"))
 
 
 # Confirm email
-@app.route('/confirm/<token>', methods=['GET'])
+@app.route("/confirm/<token>", methods=["GET"])
 def confirm_email(token):
     logout_user()
     try:
         email = confirm_token(token)
         if email:
-            if mongo.db.users.update_one({"email": email}, {"$set": {"verified": True}}):
-                return render_template('confirm.html', success=True)
+            if mongo.db.users.update_one(
+                {"email": email}, {"$set": {"verified": True}}
+            ):
+                return render_template("confirm.html", success=True)
     except:
-        return render_template('confirm.html', success=False)
+        return render_template("confirm.html", success=False)
     else:
-        return render_template('confirm.html', success=False)
+        return render_template("confirm.html", success=False)
 
 
 # Verification email
-@app.route('/verify', methods=['POST'])
+@app.route("/verify", methods=["POST"])
 @login_required
 def send_verification_email():
     if current_user.verified == False:
@@ -180,65 +199,35 @@ def send_verification_email():
 
 
 # Profile
-@app.route('/profile', methods=['GET'])
+@app.route("/profile", methods=["GET"])
 @login_required
 def profile():
-    notes = mongo.db.notes.find(
-        {"user_id": current_user.id, "deleted": False}).sort("timestamp", -1)    
+    notes = mongo.db.notes.find({"user_id": current_user.id, "deleted": False}).sort(
+        "timestamp", -1
+    )
     notes_count = mongo.db.notes.count_documents(
-        {"user_id": current_user.id, "deleted": False})
-    return render_template('profile.html', notes=notes, notes_count = notes_count,  title=current_user.title)
-
-
-# Messages
-@app.route('/messages', methods=['GET'])
-@login_required
-def messages():
-    all_users = mongo.db.users.find(
-        {"id": {"$ne": current_user.id}}, {'_id': 0})
-    inbox_messages = mongo.db.messages.find(
-        {"to_id": current_user.id, "deleted": False}).sort("timestamp", -1)
-    inbox_messages_count = len(list(inbox_messages.clone()))
-    sent_messages = mongo.db.messages.find(
-        {"from_id": current_user.id, "deleted": False, "hidden_for_sender": False}).sort("timestamp", -1)
-    sent_messages_count = len(list(sent_messages.clone()))
-    print("---ererer-----")
+        {"user_id": current_user.id, "deleted": False}
+    )
     return render_template(
-                          'messages.html', 
-                           users=all_users,
-                           inbox_messages=inbox_messages, 
-                           sent_messages=sent_messages, 
-                           inbox_messages_count = inbox_messages_count, 
-                           sent_messages_count = sent_messages_count
-                           )
-
-@app.route('/some', methods=['GET'])
-@login_required
-def some():
-    all_users = mongo.db.users.find(
-        {"id": current_user.id})
-    
-    print("---ererer-----")
-    print(all_users.collection.full_name)
-    return render_template('some.html', users=all_users.collection.full_name, current_user = current_user)
-
+        "profile.html", notes=notes, notes_count=notes_count, title=current_user.title
+    )
 
 
 # Logout
-@app.route('/logout', methods=['GET'])
+@app.route("/logout", methods=["GET"])
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('index'))
+    return redirect(url_for("index"))
 
 
 # POST REQUEST ROUTES
 # Add category
-@app.route('/add_category', methods=['POST'])
+@app.route("/add_category", methods=["POST"])
 @login_required
 def add_category():
-    title = request.form.get("title")    
-    id = request.form.get("id")    
+    title = request.form.get("title")
+    id = request.form.get("id")
     if title and id:
         print("-----------------Done--------------")
         category = Category(title, id)
@@ -250,7 +239,7 @@ def add_category():
 
 
 # Delete note
-@app.route('/delete_category', methods=['POST'])
+@app.route("/delete_category", methods=["POST"])
 @login_required
 def delete_note():
     category_id = request.form.get("category_id")
@@ -260,34 +249,48 @@ def delete_note():
         return "Error! Could not delete note"
 
 
-
-
 # Change Name
-@app.route('/change_name', methods=['POST'])
+@app.route("/change_name", methods=["POST"])
 @login_required
 def change_name():
-    title = request.form['title'].strip()
-    first_name = request.form['first_name'].strip()
-    last_name = request.form['last_name'].strip()
+    title = request.form["title"].strip()
+    first_name = request.form["first_name"].strip()
+    last_name = request.form["last_name"].strip()
 
-    if mongo.db.users.update_one({"email": current_user.email}, {"$set": {"title": title, "first_name": first_name, "last_name": last_name}}):
+    if mongo.db.users.update_one(
+        {"email": current_user.email},
+        {"$set": {"title": title, "first_name": first_name, "last_name": last_name}},
+    ):
         return "User name updated successfully"
     else:
         return "Error! Could not update user name"
 
+
 # Calculate
-@app.route('/calculate_feed', methods=['POST', "GET"])
+@app.route("/calculate_feed", methods=["POST"])
 # @login_required
 def calculate_feed():
     print("some error")
     if request.form:
         print(request.form)
+        try:
+            selected_catalog = request.form.getlist("catalog[]")
+            if mongo.db.users.update_one(
+                {"email": current_user.email},
+                {"$set": {"preferences": selected_catalog}},
+            ):
+                # print(selected_catalog, "this catalog")
+                return "User feed settings updated successfully"
+        except Exception as e:
+            print(e)
+            return "Error! Could not update user feed settings"
     # if mongo.db.users.update_one({"email": current_user.email}, {"$set": {"title": title, "first_name": first_name, "last_name": last_name}}):
-        return "User name updated successfully"
     else:
-        return "Error! Could not update user name"
+        return "Error! Could not update user feed settings"
+
+
 # Delete Account
-@app.route('/delete_account', methods=['POST'])
+@app.route("/delete_account", methods=["POST"])
 @login_required
 def delete_account():
     user_id = current_user.id
@@ -307,43 +310,63 @@ def delete_account():
         notes_deleted = True
 
     # Delete messages
-    if mongo.db.messages.delete_many({"$or": [{"from_id": user_id}, {"to_id": user_id}]}):
+    if mongo.db.messages.delete_many(
+        {"$or": [{"from_id": user_id}, {"to_id": user_id}]}
+    ):
         messages_deleted = True
 
-    return {"user_deleted": user_deleted, "notes_deleted": notes_deleted, "messages_deleted": messages_deleted}
+    return {
+        "user_deleted": user_deleted,
+        "notes_deleted": notes_deleted,
+        "messages_deleted": messages_deleted,
+    }
 
 
-
-@app.route('/catalog')
+@app.route("/catalog")
 def catalog():
     # Read data from JSON file
-    with open('catalog.json', 'r') as f:
+    with open("catalog.json", "r") as f:
+        data = json.load(f)
+
+    # Render data to template
+    return render_template("catalog.html", data=data)
+
+
+@app.route("/brand")
+def brand():
+    # Read data from JSON file
+    with open("brand.json", "r") as f:
         data = json.load(f)
     
     # Render data to template
-    return render_template('catalog.html', data=data)
+    return render_template("brand.html", data=data)
 
 
 
-
-@app.route('/feed')
+@app.route("/feed")
 def feed():
-    # Read data from JSON file
-    # with open('catalog.json', 'r') as f:
-    #     data = json.load(f)
-    
-
-
-    all_users = mongo.db.users.find(
-            {"id": current_user.id})
-    
-    user_feed = all_users.selected_catalog
+    # user_feed = all_users.
+    user = mongo.db.users.find_one({"id": current_user.id})
+    if user:
+        catalog_preferences = user.get(
+            "preferences", []
+        )  # Get the 'catalog' field as a list, default to empty list
+        # return jsonify({"catalog_preferences": catalog_preferences})
+        data = getVintedProducts(catalog_preferences)
+        output_array = []
+        for key, value in data.items():
+            item = value
+            item["key"] = key
+            output_array.append(item)
+        # print(output_array)
+        return render_template('feed.html', data=output_array)
+    else:
+        return jsonify({"error": "User not found"}), 404
 
     # Render data to template
-    return render_template('feed.html', data=user_feed)
+
 
 # LOGIN MANAGER REQUIREMENTS
-
 
 
 # Load user from user ID
@@ -351,7 +374,7 @@ def feed():
 def load_user(userid):
     # Return user object or none
     users = mongo.db.users
-    user = users.find_one({'id': userid}, {'_id': 0})
+    user = users.find_one({"id": userid}, {"_id": 0})
     if user:
         return User.make_from_dict(user)
     return None
@@ -361,13 +384,12 @@ def load_user(userid):
 def is_safe_url(target):
     ref_url = urlparse(request.host_url)
     test_url = urlparse(urljoin(request.host_url, target))
-    return test_url.scheme in ('http', 'https') and \
-        ref_url.netloc == test_url.netloc
+    return test_url.scheme in ("http", "https") and ref_url.netloc == test_url.netloc
 
 
 # Heroku environment
-if os.environ.get('APP_LOCATION') == 'heroku':
+if os.environ.get("APP_LOCATION") == "heroku":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
 else:
-    app.run(host='localhost', port=8080, debug=True)
+    app.run(host="localhost", port=8080, debug=True)

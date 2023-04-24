@@ -1,16 +1,37 @@
 {% extends "layout.html" %} {% block body %}
 <div class="container">
   <div class="row">
-    <h1 class="text-primary">Catalog</h1>
+    <h1 class="text-primary">Feed</h1>
   </div>
   <div class="row">
     <div class="container mt-5">
-      <ul class="list-group mt-4">
-      {% for d in data %}
-            
+      {% for item in data %}
+      <div class="col-md-4 mb-3">
+        <div class="card">          
+          <!-- Placeholder for item image -->
+          <div class="card-body">
+            <h5 class="card-title">{{ item.title }}</h5>
+            <p class="card-text">{{ item.price }} {{ item.currency }}</p>
+            <p class="card-text">Brand: {{ item.brand_title }}</p>
+          </div>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">User: {{ item.user.login }}</li>
+          </ul>
+          <div class="card-footer">
+            <small class="text-muted"
+              >Profile URL:
+              <a href="{{ item.user.profile_url }}" target="_blank"
+                >{{ item.user.profile_url }}</a
+              ></small
+            >
+          </div>
+        </div>
+      </div>
       {% endfor %}
     </div>
   </div>
-  {% endblock %}   
-
+  {% endblock %}
 </div>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.7/dist/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
