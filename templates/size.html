@@ -1,11 +1,11 @@
 {% extends "layout.html" %} {% block body %}
 <div class="container">
   <div class="row">
-    <h1 class="text-primary">Brand</h1>
+    <h1 class="text-primary">Size</h1>
   </div>
   <div class="row">
     <div class="container mt-5">
-      <form class="form-inline brand-select-form">
+      <form class="form-inline size-select-form">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="collapse show" id="collapseExample1">
           <ul class="list-group">
@@ -22,7 +22,7 @@
                   type="checkbox"
                   class="custom-control-input"
                   id="checkbox{{d.id}}"
-                  name="brand_ids[]"
+                  name="size_ids[]"
                   value="{{d.id}}"
                 />
                 <label
@@ -39,7 +39,7 @@
       </form>
     </div>
   </div>
-  <button id="brandFeed" class="btn btn-primary">Save Brand Preferences</button>
+  <button id="sizeFeed" class="btn btn-primary">Save Size Preferences</button>
 </div>
 
 {% endblock %}

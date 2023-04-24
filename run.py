@@ -277,7 +277,7 @@ def calculate_feed():
             selected_catalog = request.form.getlist("catalog[]")
             if mongo.db.users.update_one(
                 {"email": current_user.email},
-                {"$set": {"preferences": selected_catalog}},
+                {"$set": {"preferences": {"catalog":selected_catalog}}},
             ):
                 # print(selected_catalog, "this catalog")
                 return "User feed settings updated successfully"
@@ -287,6 +287,50 @@ def calculate_feed():
     # if mongo.db.users.update_one({"email": current_user.email}, {"$set": {"title": title, "first_name": first_name, "last_name": last_name}}):
     else:
         return "Error! Could not update user feed settings"
+
+@app.route("/set_brand", methods=["POST"])
+# @login_required
+def set_brand():
+    print("some error")
+    if request.form:
+        print(request.form)
+        try:
+            selected_catalog = request.form.getlist("brand_ids[]")
+            if mongo.db.users.update_one(
+                {"email": current_user.email},
+                {"$set": {"preferences": {"brand_ids":selected_catalog}}},
+            ):
+                # print(selected_catalog, "this catalog")
+                return "User feed settings updated successfully"
+        except Exception as e:
+            print(e)
+            return "Error! Could not update user feed settings"
+    # if mongo.db.users.update_one({"email": current_user.email}, {"$set": {"title": title, "first_name": first_name, "last_name": last_name}}):
+    else:
+        return "Error! Could not update user feed settings"
+
+@app.route("/set_size", methods=["POST"])
+# @login_required
+def set_brand():
+    print("some error")
+    if request.form:
+        print(request.form)
+        try:
+            selected_catalog = request.form.getlist("size_ids[]")
+            if mongo.db.users.update_one(
+                {"email": current_user.email},
+                {"$set": {"preferences": {"size_ids":selected_catalog}}},                
+                
+            ):
+                # print(selected_catalog, "this catalog")
+                return "User feed settings updated successfully"
+        except Exception as e:
+            print(e)
+            return "Error! Could not update user feed settings"
+    # if mongo.db.users.update_one({"email": current_user.email}, {"$set": {"title": title, "first_name": first_name, "last_name": last_name}}):
+    else:
+        return "Error! Could not update user feed settings"
+
 
 
 # Delete Account
@@ -340,6 +384,16 @@ def brand():
     
     # Render data to template
     return render_template("brand.html", data=data)
+
+
+@app.route("/size")
+def size():
+    # Read data from JSON file
+    with open("size.json", "r") as f:
+        data = json.load(f)
+    
+    # Render data to template
+    return render_template("size.html", data=data)
 
 
 

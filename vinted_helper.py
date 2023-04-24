@@ -14,9 +14,14 @@ def getVintedProducts(
 ):
     url = "https://www.vinted.com/catalog?order=newest_first"
     if pref:
-        for i in pref:
+        for i in pref['catalog']:
             url += "&catalog[]=" + i
-
+        for i in pref['size_ids']:
+            url += "&size_id[]=" + i
+        for i in pref['brand_ids']:
+            url += "&brand_id[]=" + i
+        if pref['price range']:
+            url+=f"&price_from={pref['price range']['min']}&currency={pref['price range']['currency']}&price_to={pref['price range']['max']}"
     print(url)
     response = requests.get(url)
 
