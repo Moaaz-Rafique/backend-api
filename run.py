@@ -30,7 +30,6 @@ import configparser
 import json
 import sys
 import os
-import pathlib
 
 # Local imports
 from user import User, Anonymous
@@ -47,13 +46,8 @@ from verification import confirm_token
 app = Flask(__name__)
 
 # Configuration
-config_path = pathlib.Path(__file__).parent.absolute() / "configuration.ini"
-print(config_path)
 config = configparser.ConfigParser()
-config.read(config_path)
-
-# config = configparser.ConfigParser()
-# config.read("configuration.ini")
+config.read("configuration.ini")
 default = config["DEFAULT"]
 app.secret_key = default["SECRET_KEY"]
 app.config["MONGO_DBNAME"] = default["DATABASE_NAME"]
@@ -282,12 +276,12 @@ def calculate_feed():
         try:
             selected_catalog = request.form.getlist("catalog[]")
             user_doc = mongo.db.users.find_one({"email": current_user.email})
-            if not user_doc:
-                user_doc['preferences'] = {}
-            user_doc['preferences']['catalog'] = selected_catalog
+
+            # Update the preference object with the new size value
+            user_doc['preference']['catalog'] = selected_catalog
 
             # Save the updated document back to MongoDB
-            if mongo.db.users.replace_one({'_id': user_doc['_id']}, user_doc):
+            if mongo.db.users.replace_one({'_id': user_doc.id}, user_doc):
                 # print(selected_catalog, "this catalog")
                 # print(selected_catalog, "this catalog")
                 return "User feed settings updated successfully"
@@ -312,7 +306,7 @@ def set_brand():
             user_doc['preferences']['brands_ids'] = selected_catalog
 
             # Save the updated document back to MongoDB
-            if mongo.db.users.replace_one({'_id': user_doc['_id']}, user_doc):
+            if mongo.db.users.replace_one({'_id': user_doc.id}, user_doc):
                 # print(selected_catalog, "this catalog")
                 return "User feed settings updated successfully"
         except Exception as e:
@@ -446,8 +440,9 @@ def feed():
     user = mongo.db.users.find_one({"id": current_user.id})
     if user:
         catalog_preferences = user.get(
-            "preferences", {'catalog':[], 'brand_ids':[], 'size_ids':[]}
-        )
+            "preferences", []
+        )  # Get the 'catalog' field as a list, default to empty list
+        # return jsonify({"catalog_preferences": catalog_preferences})
         data = getVintedProducts(catalog_preferences)
         output_array = []
         for key, value in data.items():
