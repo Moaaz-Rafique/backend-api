@@ -30,6 +30,7 @@ import configparser
 import json
 import sys
 import os
+import pathlib
 
 # Local imports
 from user import User, Anonymous
@@ -46,8 +47,12 @@ from verification import confirm_token
 app = Flask(__name__)
 
 # Configuration
+config_path = pathlib.Path(__file__).parent.absolute() / "configuration.ini"
 config = configparser.ConfigParser()
-config.read("configuration.ini")
+config.read(config_path)
+
+# config = configparser.ConfigParser()
+# config.read("configuration.ini")
 default = config["DEFAULT"]
 app.secret_key = default["SECRET_KEY"]
 app.config["MONGO_DBNAME"] = default["DATABASE_NAME"]
