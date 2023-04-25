@@ -48,6 +48,7 @@ app = Flask(__name__)
 
 # Configuration
 config_path = pathlib.Path(__file__).parent.absolute() / "configuration.ini"
+print(config_path)
 config = configparser.ConfigParser()
 config.read(config_path)
 
