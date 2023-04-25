@@ -276,12 +276,12 @@ def calculate_feed():
         try:
             selected_catalog = request.form.getlist("catalog[]")
             user_doc = mongo.db.users.find_one({"email": current_user.email})
-
-            # Update the preference object with the new size value
-            user_doc['preference']['catalog'] = selected_catalog
+            if not user_doc:
+                user_doc['preferences'] = {}
+            user_doc['preferences']['catalog'] = selected_catalog
 
             # Save the updated document back to MongoDB
-            if mongo.db.users.replace_one({'_id': user_doc.id}, user_doc):
+            if mongo.db.users.replace_one({'_id': user_doc['_id']}, user_doc):
                 # print(selected_catalog, "this catalog")
                 # print(selected_catalog, "this catalog")
                 return "User feed settings updated successfully"
@@ -301,12 +301,12 @@ def set_brand():
         try:
             selected_catalog = request.form.getlist("brand_ids[]")
             user_doc = mongo.db.users.find_one({"email": current_user.email})
-
-            # Update the preference object with the new size value
-            user_doc['preference']['brands_ids'] = selected_catalog
+            if not user_doc:
+                user_doc['preferences'] = {}
+            user_doc['preferences']['brands_ids'] = selected_catalog
 
             # Save the updated document back to MongoDB
-            if mongo.db.users.replace_one({'_id': user_doc.id}, user_doc):
+            if mongo.db.users.replace_one({'_id': user_doc['_id']}, user_doc):
                 # print(selected_catalog, "this catalog")
                 return "User feed settings updated successfully"
         except Exception as e:
@@ -327,10 +327,12 @@ def set_size():
             user_doc = mongo.db.users.find_one({"email": current_user.email})
 
             # Update the preference object with the new size value
-            user_doc['preference']['size_ids'] = selected_catalog
+            if not user_doc:
+                user_doc['preferences'] = {}
+            user_doc['preferences']['size_ids'] = selected_catalog
 
             # Save the updated document back to MongoDB
-            if mongo.db.users.replace_one({'_id': user_doc.id}, user_doc):
+            if mongo.db.users.replace_one({'_id': user_doc['_id']}, user_doc):
                 # print(selected_catalog, "this catalog")
                 return "User feed settings updated successfully"
         except Exception as e:
@@ -341,6 +343,32 @@ def set_size():
         return "Error! Could not update user feed settings"
 
 
+@app.route("/test", methods=["GET"])
+# @login_required
+def test():
+    print("some error")
+    if True:
+        print(request.form)
+        try:
+            selected_catalog = [1,2,32,3]
+            user_doc = mongo.db.users.find_one({"email": current_user.email})
+
+            # Update the preference object with the new size value
+            # print('user_doc',user_doc)
+            if not user_doc:
+                user_doc['preferences'] = {}
+            user_doc['preferences']['size_ids'] = selected_catalog
+
+            # Save the updated document back to MongoDB
+            if mongo.db.users.replace_one({'_id': user_doc['_id']}, user_doc):
+                # print(selected_catalog, "this catalog")
+                return "User feed settings updated successfully"
+        except Exception as e:
+            print(e)
+            return "Error! Could not update user feed settings"
+    # if mongo.db.users.update_one({"email": current_user.email}, {"$set": {"title": title, "first_name": first_name, "last_name": last_name}}):
+    else:
+        return "Error! Could not update user feed settings"
 
 # Delete Account
 @app.route("/delete_account", methods=["POST"])
@@ -412,9 +440,8 @@ def feed():
     user = mongo.db.users.find_one({"id": current_user.id})
     if user:
         catalog_preferences = user.get(
-            "preferences", []
-        )  # Get the 'catalog' field as a list, default to empty list
-        # return jsonify({"catalog_preferences": catalog_preferences})
+            "preferences", {'catalog':[], 'brand_ids':[], 'size_ids':[]}
+        )
         data = getVintedProducts(catalog_preferences)
         output_array = []
         for key, value in data.items():
