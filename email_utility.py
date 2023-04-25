@@ -1,7 +1,7 @@
 from flask import url_for, render_template
 import smtplib
 import ssl
-import configparser
+# import configparser
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from verification import generate_confirmation_token
@@ -11,18 +11,18 @@ from verification import generate_confirmation_token
 def send_email(receiver_email, subject, plaintext, html):
 
     # Connection configuration
-    config = configparser.ConfigParser()
-    config.read('configuration.ini')
-    email_config = config['EMAIL']
-    SMTP_SERVER = email_config['SMTP_SERVER']
-    PORT = 587  # For starttls
-    SENDER_EMAIL = email_config['SENDER_EMAIL']
-    PASSWORD = email_config['PASSWORD']
+    # config = configparser.ConfigParser()
+    # config.read('configuration.ini')
+    # email_config = config['EMAIL']
+    # SMTP_SERVER = email_config['SMTP_SERVER']
+    # PORT = 587  # For starttls
+    # SENDER_EMAIL = email_config['SENDER_EMAIL']
+    # PASSWORD = email_config['PASSWORD']
 
     # Message setup
     message = MIMEMultipart("alternative")
     message["Subject"] = subject
-    message["From"] = SENDER_EMAIL
+    message["From"] = 'SENDER_EMAIL'
     message["To"] = receiver_email
 
     # Turn text into plain or HTML MIMEText objects
@@ -40,11 +40,11 @@ def send_email(receiver_email, subject, plaintext, html):
     # Try to log in to server and send email
     server = None
     try:
-        server = smtplib.SMTP(SMTP_SERVER, PORT)
+        server = smtplib.SMTP('SMTP_SERVER', 'PORT')
         server.ehlo()
         server.starttls(context=context)  # Secure the connection
         server.ehlo()
-        server.login(SENDER_EMAIL, PASSWORD)
+        server.login('SENDER_EMAIL', 'PASSWORD')
         server.send_message(message)
     except Exception as e:
         # Print error messages to stdout
