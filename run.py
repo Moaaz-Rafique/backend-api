@@ -26,7 +26,7 @@ from flask_wtf.csrf import CSRFProtect
 # Other modules
 from urllib.parse import urlparse, urljoin
 from datetime import datetime
-import configparser
+# import configparser
 import json
 import sys
 import os
@@ -46,13 +46,8 @@ from verification import confirm_token
 app = Flask(__name__)
 
 # Configuration
-config = configparser.ConfigParser()
-config.read("configuration.ini")
-default = config["DEFAULT"]
-app.secret_key = default["SECRET_KEY"]
-app.config["MONGO_DBNAME"] = default["DATABASE_NAME"]
-app.config["MONGO_URI"] = default["MONGO_URI"]
-app.config["PREFERRED_URL_SCHEME"] = "https"
+# config = configparser.ConfigParser()
+# config.read("configuration.ini")
 
 # Create Pymongo
 mongo = PyMongo(app)
@@ -202,14 +197,24 @@ def send_verification_email():
 @app.route("/profile", methods=["GET"])
 @login_required
 def profile():
-    notes = mongo.db.notes.find({"user_id": current_user.id, "deleted": False}).sort(
-        "timestamp", -1
-    )
-    notes_count = mongo.db.notes.count_documents(
-        {"user_id": current_user.id, "deleted": False}
-    )
+    notes = ''
+    preferences = ''
+    notes_count = 0
+    try:
+        user = mongo.db.users.find_one({"id": current_user.id})
+        
+        preferences = user['preferences']
+        notes_count = mongo.db.notes.count_documents(
+            {"user_id": current_user.id, "deleted": False}
+        )        
+        with open("catalog.json", "r") as f:
+            data = json.load(f)
+        preferences['catalog'] = [item for item in data if item['id'] in preferences['catalog']]
+        print(preferences['catalog'])
+    except Exception as e:
+        print(e)
     return render_template(
-        "profile.html", notes=notes, notes_count=notes_count, title=current_user.title
+        "profile.html", preferences=preferences, notes_count=notes_count, title=current_user.title
     )
 
 
@@ -220,6 +225,27 @@ def logout():
     logout_user()
     return redirect(url_for("index"))
 
+# Logout
+@app.route("/preferences", methods=["GET"])
+@login_required
+def preferences():
+    preferences=dict()
+    with open("size.json", "r") as f:
+        data = json.load(f)
+    preferences['size'] = data
+    # Render data to template
+    # return render_template("size.html", data=data)
+    # Read data from JSON file
+    with open("brand.json", "r") as f:
+        data = json.load(f)
+    preferences['brands'] = data
+    with open("catalog.json", "r") as f:
+        data = json.load(f)
+        preferences['catalog'] = data
+
+    return render_template(
+        "preferences.html", preferences=preferences
+    )
 
 # POST REQUEST ROUTES
 # Add category
@@ -278,10 +304,12 @@ def calculate_feed():
             user_doc = mongo.db.users.find_one({"email": current_user.email})
 
             # Update the preference object with the new size value
-            user_doc['preference']['catalog'] = selected_catalog
+            if not user_doc:
+                user_doc['preferences'] = {}
+            user_doc['preferences']['catalog'] = selected_catalog
 
             # Save the updated document back to MongoDB
-            if mongo.db.users.replace_one({'_id': user_doc.id}, user_doc):
+            if mongo.db.users.replace_one({'_id': user_doc['_id']}, user_doc):
                 # print(selected_catalog, "this catalog")
                 # print(selected_catalog, "this catalog")
                 return "User feed settings updated successfully"
@@ -306,7 +334,7 @@ def set_brand():
             user_doc['preferences']['brands_ids'] = selected_catalog
 
             # Save the updated document back to MongoDB
-            if mongo.db.users.replace_one({'_id': user_doc.id}, user_doc):
+            if mongo.db.users.replace_one({'_id': user_doc['_id']}, user_doc):
                 # print(selected_catalog, "this catalog")
                 return "User feed settings updated successfully"
         except Exception as e:
@@ -449,7 +477,7 @@ def feed():
             item = value
             item["key"] = key
             output_array.append(item)
-        # print(output_array)
+        print(output_array[0])
         return render_template('feed.html', data=output_array)
     else:
         return jsonify({"error": "User not found"}), 404
@@ -477,10 +505,10 @@ def is_safe_url(target):
     test_url = urlparse(urljoin(request.host_url, target))
     return test_url.scheme in ("http", "https") and ref_url.netloc == test_url.netloc
 
-
+if __name__ == '__main__':
 # Heroku environment
-if os.environ.get("APP_LOCATION") == "heroku":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
-else:
-    app.run(host="localhost", port=8080, debug=True)
+    if os.environ.get("APP_LOCATION") == "heroku":
+        port = int(os.environ.get("PORT", 5000))
+        app.run(host="0.0.0.0", port=port)
+    else:
+        app.run(host="localhost", port=8080, debug=True)

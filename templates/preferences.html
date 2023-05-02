@@ -1,0 +1,243 @@
+{% extends "layout.html" %} {% block body %}
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <button
+        class="btn btn-primary"
+        type="button"
+        data-toggle="collapse"
+        data-target="#sizeCollapse"
+        aria-expanded="false"
+        aria-controls="sizeCollapse"
+      >
+        Select Size
+      </button>
+      <div class="collapse multi-collapse" id="sizeCollapse">
+        <div class="card card-body">
+          <div class="container">
+            <div class="row">
+              <h1 class="text-primary">Size</h1>
+            </div>
+            <div class="row">
+              <div class="container mt-5">
+                <form class="form-inline size-select-form">
+                  <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                  />
+                  <div class="collapse show" id="collapseExample1">
+                    <ul class="list-group">
+                      {% for d in preferences['size'] %}
+                      <li
+                        class="list-group-item list-group-item"
+                        data-toggle="collapse"
+                        data-target="#{{d.title}}"
+                        aria-expanded="true"
+                        aria-controls="{{d.title}}"
+                      >
+                        <div class="custom-control custom-checkbox">
+                          <input
+                            type="checkbox"
+                            class="custom-control-input"
+                            id="checkbox{{d.id}}"
+                            name="size_ids[]"
+                            value="{{d.id}}"
+                          />
+                          <label
+                            class="custom-control-label text-left"
+                            for="checkbox{{d.id}}"
+                            >{{d.caption}}: {{d.description}}</label
+                          >
+                        </div>
+                      </li>
+
+                      {% endfor %}
+                    </ul>
+                  </div>
+                </form>
+              </div>
+            </div>
+            <button id="sizeFeed" class="btn btn-primary">
+              Save Size Preferences
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <button
+        class="btn btn-primary"
+        type="button"
+        data-toggle="collapse"
+        data-target="#brandCollapse"
+        aria-expanded="false"
+        aria-controls="brandCollapse"
+      >
+        Select Brand
+      </button>
+
+      <div class="collapse multi-collapse" id="brandCollapse">
+        <div class="card card-body">
+          <div class="container">
+            <div class="row">
+              <h1 class="text-primary">Brand</h1>
+            </div>
+            <div class="row">
+              <div class="container mt-5">
+                <form class="form-inline brand-select-form">
+                  <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                  />
+                  <div class="collapse show" id="collapseExample1">
+                    <ul class="list-group">
+                      {% for d in preferences['brands'] %}
+                      <li
+                        class="list-group-item list-group-item"
+                        data-toggle="collapse"
+                        {#
+                        data-target="#{{d.title}}1"
+                        #}
+                        aria-expanded="true"
+                        aria-controls="{{d.title}}1"
+                      >
+                        <div class="custom-control custom-checkbox">
+                          <input
+                            type="checkbox"
+                            class="custom-control-input"
+                            id="checkbox{{d.id}}"
+                            name="brand_ids[]"
+                            value="{{d.id}}"
+                          />
+                          <label
+                            class="custom-control-label text-left"
+                            for="checkbox{{d.id}}"
+                            >{{d.title}}</label
+                          >
+                        </div>
+                      </li>
+
+                      {% endfor %}
+                    </ul>
+                  </div>
+                </form>
+              </div>
+            </div>
+            <button id="brandFeed" class="btn btn-primary">
+              Save Brand Preferences
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <button
+        class="btn btn-primary"
+        type="button"
+        data-toggle="collapse"
+        data-target="#categoryCollapse"
+        aria-expanded="false"
+        aria-controls="categoryCollapse"
+      >
+        Select Category
+      </button>
+      <div class="collapse multi-collapse" id="categoryCollapse">
+        <div class="card card-body">
+          <div class="container">
+            <div class="row">
+              <h1 class="text-primary">Catalog</h1>
+            </div>
+            <div class="row">
+              <div class="container mt-5">
+                <form class="form-inline catalogue-form">
+                  <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                  />
+                  <div class="collapse show" id="collapseExample1">
+                    <ul class="list-group mt-4">
+                      {% for a in preferences['catalog'] %}
+                      <li
+                        class="list-group-item list-group-item-primary"
+                        data-toggle="collapse"
+                        data-target="#{{a.title}}"
+                        aria-expanded="true"
+                        aria-controls="{{a.title}}"
+                      >
+                        {{a.code}}, {{a.id}}
+                      </li>
+                      <div class="collapse" id="{{a.title}}">
+                        <ul class="list-group">
+                          {% for d in a.catalogs %}
+                          <li
+                            class="list-group-item list-group-item"
+                            data-toggle="collapse"
+                            data-target="#{{d.title}}"
+                            aria-expanded="true"
+                            aria-controls="{{d.title}}"
+                          >
+                            <div class="custom-control custom-checkbox">
+                              <input
+                                type="checkbox"
+                                class="custom-control-input"
+                                id="checkbox{{d.id}}"
+                                name="catalog[]"
+                                value="{{d.id}}"
+                              />
+                              <label
+                                class="custom-control-label text-left"
+                                for="checkbox{{d.id}}"
+                                >{{d.code}}</label
+                              >
+                            </div>
+                          </li>
+                          <div class="collapse" id="{{d.title}}">
+                            <ul class="list-group">
+                              {% for c in d.catalogs %}
+                              <li
+                                class="list-group-item list-group-item-secondary"
+                              >
+                                <div class="custom-control custom-checkbox">
+                                  <input
+                                    type="checkbox"
+                                    class="custom-control-input"
+                                    id="checkbox{{c.id}}"
+                                    name="catalog[]"
+                                    value="{{c.id}}"
+                                  />
+                                  <label
+                                    class="custom-control-label text-left"
+                                    for="checkbox{{c.id}}"
+                                    >{{c.code}}</label
+                                  >
+                                </div>
+                              </li>
+                              {% endfor %}
+                            </ul>
+                          </div>
+
+                          {% endfor %}
+                        </ul>
+                      </div>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                </form>
+              </div>
+            </div>
+            <button id="feed" class="btn btn-primary">save preferences</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

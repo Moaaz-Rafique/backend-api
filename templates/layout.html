@@ -7,7 +7,7 @@
     <meta name="description" content="Example web app using Flask" />
     <meta name="author" content="Dr Chris Wilson" />
 
-    <title>Web App Template</title>
+    <title>Vinted Hawks</title>
 
     <!-- Bootstrap CSS -->
     <link
@@ -60,13 +60,12 @@
           <li class="nav-item">
             <a class="nav-link" href="{{url_for('feed')}}">Feed</a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{url_for('preferences')}}">Preferences</a>
+          </li>
           {#
           <li class="nav-item">
             <a class="nav-link" href="{{url_for('messages')}}">Messages</a>
-          </li>
-          #}
-          <li class="nav-item">
-            <a class="nav-link" href="{{url_for('catalog')}}">Catalog</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="{{url_for('brand')}}">Brand</a>
@@ -74,6 +73,7 @@
           <li class="nav-item">
             <a class="nav-link" href="{{url_for('size')}}">Size</a>
           </li>
+          #}
           {% endif %}
         </ul>
 

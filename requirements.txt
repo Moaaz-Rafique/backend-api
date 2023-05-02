@@ -7,3 +7,5 @@ flask_wtf
 dnspython
 configparser
 itsdangerous
+requests
+bs4

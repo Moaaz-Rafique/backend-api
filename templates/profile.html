@@ -93,28 +93,10 @@
 
         <div class="col-lg-4">
 
-            <h1 class="mb-3 mt-5 mt-lg-0">My notes</h1>
-            {% for note in notes %}
-            <div class="card border border-muted bg-light rounded mb-3">
-                <div class="card-body">
-                    <h3 class="card-title">{{ note.title}}</h3>
-                    <p class="card-text">{{ note.body }}</p>
-                </div>
-                <div class="card-footer bg-light d-flex justify-content-between">
-                    <div class="my-auto">
-                        <p class="my-auto text-muted">{{ note.date_string }}</p>
-                    </div>
-                    <div class="my-auto">
-                        <form class="delete-note-form">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <input type="hidden" name="note_id" value="{{ note.id }}">
-                            <button class="btn btn-danger delete-note-button">Delete note</button>
-                        </form>
-                    </div>
-                </div>
+            <h1 class="mb-3 mt-5 mt-lg-0">My Preferences</h1>
+            <div>
+                {{ preferences }}
             </div>
-            {% endfor %}
-
             {% if notes_count == 0 %}
             <p>You have no notes</p>
             {% endif %}

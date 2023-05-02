@@ -171,7 +171,7 @@ $(document).ready(function() {
         console.log(response);
       });
   });
-  $("button#sizeBrand").click(function () {
+  $("button#brandFeed").click(function () {
     console.log("clicked calculate")
     $.post("/set_brand", $("form.brand-select-form").serialize())
       .done(function (response) {
